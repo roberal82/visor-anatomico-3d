@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Visor anatómico 3D</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#090f1a;color:#eaf0f8;font:14px system-ui}#scene{position:fixed;inset:0}header{position:fixed;top:0;left:0;right:0;padding:12px 16px;background:#101c30dd;display:flex;justify-content:space-between;align-items:center;z-index:2}#panel{position:fixed;left:12px;top:66px;width:300px;max-width:calc(100vw - 24px);max-height:calc(100dvh - 145px);overflow:auto;background:#101c30eb;border:1px solid #344760;border-radius:12px;padding:14px;z-index:2}button{background:#263e5a;color:white;border:1px solid #526983;border-radius:8px;padding:9px;margin:3px;cursor:pointer}button:hover{background:#3a5576}input[type=range]{width:100%;accent-color:#e7475d}input[type=search]{width:100%;padding:10px;background:#1b2a40;color:white;border:1px solid #53677e;border-radius:8px}label{display:block;margin:9px 0}small{color:#b5c4d5}#notice{color:#ffc18b;white-space:pre-line}footer{position:fixed;bottom:0;left:0;right:0;background:#111d30ee;padding:10px;text-align:center;font-size:12px;z-index:2}#toggle{display:none}@media(max-width:700px){#toggle{display:block}#panel{top:60px;max-height:calc(100dvh - 130px)}#panel.closed{display:none}header h3{font-size:14px;margin:0}}
+</style></head><body>
+<div id="scene"></div><header><h3>Visor anatómico 3D</h3><button id="toggle">☰ Capas</button></header>
+<section id="panel"><input id="search" type="search" placeholder="Buscar músculo u órgano"><p id="selection">Tocá una estructura para identificarla.</p><div id="layers"></div>
+<h4>Vistas</h4><div id="views"><button data-v="front">Anterior</button><button data-v="back">Posterior</button><button data-v="left">Lateral izq.</button><button data-v="right">Lateral der.</button></div>
+<h4>Corte horizontal</h4><input id="cut" type="range" min="0" max="100" value="100"><label><input type="checkbox" id="cutOn"> Activar plano de corte</label>
+<button id="lesion">Ir a la lesión</button><p id="notice"></p></section>
+<footer>Esquema ilustrativo, no reemplaza las imágenes ni el criterio del equipo médico.</footer>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.163.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.163.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+const CONFIG={lesion:{position:[0,0,0],cameraOffset:[0,0,1.8]},files:{piel:'modelos/piel.glb',musculos:'modelos/musculos.glb',esqueleto:'modelos/esqueleto.glb',organos:'modelos/organos.glb',vasos:'modelos/vasos.glb'}};
+// CONFIG.lesion.position debe calibrarse con el estómago real del GLB; no representa coordenadas clínicas.
+const scene=new THREE.Scene();scene.background=new THREE.Color('#090f1a');
+const camera=new THREE.PerspectiveCamera(45,innerWidth/innerHeight,.01,1000);camera.position.set(0,1,4);
+const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,innerWidth<700?1.5:2));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.localClippingEnabled=true;document.querySelector('#scene').appendChild(renderer.domElement);
+scene.add(new THREE.HemisphereLight(0xffffff,0x3b4b66,2));const light=new THREE.DirectionalLight(0xffffff,3);light.position.set(2,4,5);scene.add(light);
+const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.target.set(0,1,0);
+const loader=new GLTFLoader(),groups={},missing=[],clip=new THREE.Plane(new THREE.Vector3(0,-1,0),1000);
+let bounds=new THREE.Box3(),ready=0;
+const labels={piel:'Piel',musculos:'Músculos',esqueleto:'Esqueleto',organos:'Órganos',vasos:'Sistema circulatorio'};
+for(const [key,path] of Object.entries(CONFIG.files)){
+ const row=document.createElement('div');row.innerHTML='<label><input type="checkbox" checked> '+labels[key]+'</label><input type="range" min="0" max="100" value="100"><small>Cargando...</small>';document.querySelector('#layers').append(row);
+ const checkbox=row.querySelector('input[type=checkbox]'),slider=row.querySelector('input[type=range]'),status=row.querySelector('small');
+ checkbox.onchange=()=>{if(groups[key])groups[key].visible=checkbox.checked};
+ slider.oninput=()=>{groups[key]?.traverse(o=>{if(o.isMesh){const mats=Array.isArray(o.material)?o.material:[o.material];mats.forEach(m=>{m.transparent=+slider.value<100;m.opacity=slider.value/100;m.depthWrite=+slider.value===100})}})};
+ loader.load(path,gltf=>{groups[key]=gltf.scene;scene.add(gltf.scene);bounds.expandByObject(gltf.scene);status.textContent='Cargado';ready++;if(ready===1){const b=bounds.getBoundingSphere(new THREE.Sphere());controls.target.copy(b.center);camera.position.copy(b.center).add(new THREE.Vector3(0,0,Math.max(b.radius*2.7,1)));controls.update()}gltf.scene.traverse(o=>{if(o.isMesh){o.material=o.material.clone();o.material.clippingPlanes=[clip]}})},()=>{},()=>{missing.push(path);status.textContent='Archivo no disponible';document.querySelector('#notice').textContent='Modelos faltantes:\n'+missing.join('\n')});
+}
+const views={front:[0,0,1],back:[0,0,-1],left:[-1,0,0],right:[1,0,0]};
+document.querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>{const radius=Math.max(bounds.getBoundingSphere(new THREE.Sphere()).radius*2.7,2);camera.position.copy(controls.target).add(new THREE.Vector3(...views[b.dataset.v]).multiplyScalar(radius));controls.update()});
+const cut=document.querySelector('#cut'),cutOn=document.querySelector('#cutOn');function updateCut(){const size=bounds.getSize(new THREE.Vector3()),min=bounds.min.y;clip.constant=cutOn.checked?min+size.y*(+cut.value/100):1000}cut.oninput=updateCut;cutOn.onchange=updateCut;
+const ray=new THREE.Raycaster(),mouse=new THREE.Vector2();
+renderer.domElement.addEventListener('pointerup',e=>{mouse.set(e.clientX/innerWidth*2-1,-e.clientY/innerHeight*2+1);ray.setFromCamera(mouse,camera);const hits=ray.intersectObjects(Object.values(groups),true);if(hits.length)document.querySelector('#selection').textContent=hits[0].object.name||'Estructura sin nombre en el modelo'});
+document.querySelector('#search').oninput=e=>{const q=e.target.value.toLowerCase().trim();if(!q)return;let found;for(const g of Object.values(groups))g.traverse(o=>{if(!found&&o.isMesh&&o.name.toLowerCase().includes(q))found=o});document.querySelector('#selection').textContent=found?'Coincidencia: '+found.name:'No se encontró esa estructura';if(found){const p=new THREE.Vector3();found.getWorldPosition(p);controls.target.copy(p);camera.position.copy(p).add(new THREE.Vector3(0,0,1));controls.update()}};
+document.querySelector('#lesion').onclick=()=>{document.querySelector('#selection').textContent='Cuerpo gástrico, curvatura mayor, pared posterior. Tumoración difusa, friable y estenosante. Ubicación 3D pendiente de calibrar con el modelo anatómico.';if(!groups.organos){document.querySelector('#notice').textContent='No se puede localizar visualmente la lesión: falta modelos/organos.glb';return}document.querySelector('#notice').textContent='La ubicación 3D de la lesión requiere calibración. No se dibuja un marcador anatómicamente no verificado.'};
+document.querySelector('#toggle').onclick=()=>document.querySelector('#panel').classList.toggle('closed');
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+function animate(){requestAnimationFrame(animate);controls.update();renderer.render(scene,camera)}animate();
+</script></body></html>
