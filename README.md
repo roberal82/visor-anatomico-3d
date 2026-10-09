@@ -16,24 +16,23 @@ Calidad adaptable (alta/baja), carga progresiva con indicador, y efectos (oclusi
 ## Desarrollo
 ```bash
 npm ci
-npm run dev        # servidor local
+npm run dev        # servidor local (los modelos se sirven desde la raíz)
 npm test           # comprobaciones estáticas de los GLB y la configuración
 npm run build      # genera dist/ (base /visor-anatomico-3d/)
 ```
 Pruebas en navegador (opcional, requiere Playwright de Python y Chromium): `npm run build && npx vite preview --port 4173` y luego `python3 tests/e2e.py`.
 
 ## Cómo actualizar
-- **Publicar cambios:** hacer push a `main`; el workflow `.github/workflows/pages.yml` compila y publica en GitHub Pages.
-  (Ajuste único: *Settings → Pages → Build and deployment → Source: GitHub Actions*.)
-- **Textos de la lesión, marcador, cámara y parámetros visuales:** `src/config/lesion.js`.
+- **Publicar cambios:** editar en `fuente/`, correr `npm run build` (escribe `index.html` y `assets/` en la raíz) y hacer commit y push a `main`. GitHub Pages sirve la rama `main` desde la raíz; no hace falta tocar su configuración.
+- **Textos de la lesión, marcador, cámara y parámetros visuales:** `fuente/src/config/lesion.js`.
   Si cambia el modelo del estómago hay que recalcular la posición y poner `calibrada: false` hasta verificarla (sin calibración no se dibuja el marcador).
 - **Regenerar los modelos** (requiere Blender como módulo `bpy`, `fast-simplification` y `numpy`): ver `herramientas/`
   1. `1_extraer_z_anatomy.py` (abre `Startup.blend` de Z-Anatomy y extrae las estructuras),
   2. `2_construir_capas.py -- <salida>` (une, simplifica y exporta GLB en dos calidades),
-  3. `3_comprimir.sh <salida>` (Draco → `public/modelos/`),
+  3. `3_comprimir.sh <salida>` (Draco → `modelos/`),
   4. `4_verificar_glb.mjs` (comprueba identificadores y cajas).
 
 ## Estructura
-`public/modelos/{alta,baja}/*.glb` · `public/modelos/indice.json` (nombres) · `public/draco/` (decodificador) · `src/main.js` · `src/config/lesion.js`
+`modelos/{alta,baja}/*.glb` · `modelos/indice.json` (nombres) · `draco/` (decodificador) · `fuente/src/main.js` · `fuente/src/config/lesion.js`
 
 Fuentes y licencias: [FUENTES-Y-LICENCIAS.md](FUENTES-Y-LICENCIAS.md). Modelos y adaptación: CC BY-SA 4.0.

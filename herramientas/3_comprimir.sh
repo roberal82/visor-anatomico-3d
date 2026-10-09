@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Comprime con Draco los GLB generados por 2_construir_capas.py y los deja en public/modelos/{alta,baja}/
+# Comprime con Draco los GLB generados por 2_construir_capas.py y los deja en modelos/{alta,baja}/
 # Uso: herramientas/3_comprimir.sh <carpeta_con_GLB_sin_comprimir>
 set -euo pipefail
 ORIGEN="${1:?indicá la carpeta con los GLB sin comprimir}"

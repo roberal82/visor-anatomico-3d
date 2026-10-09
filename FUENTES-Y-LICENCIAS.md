@@ -4,7 +4,7 @@
 Todas las geometrías provienen de **Z-Anatomy** (<https://github.com/Z-Anatomy/Models-of-human-anatomy>), atlas anatómico 3D abierto,
 publicado bajo **Creative Commons Atribución-CompartirIgual 4.0 Internacional (CC BY-SA 4.0)**.
 Z-Anatomy deriva de **BodyParts3D** (© The Database Center for Life Science, Japón; licencia **CC BY-SA 2.1 Japón**).
-La licencia completa que acompaña al repositorio original está en `public/modelos/LICENCIA-Z-Anatomy.txt`.
+La licencia completa que acompaña al repositorio original está en `modelos/LICENCIA-Z-Anatomy.txt`.
 Los nombres en español salen de la tabla `TA2.csv` de Z-Anatomy (Terminología Anatómica).
 
 ### Qué se modificó (adaptación)

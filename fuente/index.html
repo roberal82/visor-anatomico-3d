@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="theme-color" content="#070b12">
+<link rel="icon" href="data:,">
+<title>Visor anatómico 3D</title>
+<meta name="description" content="Visor anatómico 3D interactivo del cuerpo humano con cinco capas: piel, músculos, esqueleto, órganos y sistema circulatorio.">
+</head>
+<body>
+<div id="app">
+  <canvas id="lienzo" aria-label="Modelo anatómico en 3D"></canvas>
+
+  <header id="barra">
+    <button id="btn-menu" class="icono" aria-label="Abrir menú" aria-expanded="false">☰</button>
+    <h1>Visor anatómico 3D</h1>
+    <button id="btn-reiniciar" class="chico" title="Restablecer la cámara">Restablecer</button>
+  </header>
+
+  <div id="progreso" role="status" aria-live="polite"><div id="progreso-barra"></div><span id="progreso-texto">Preparando…</span></div>
+
+  <aside id="menu" aria-label="Menú de capas y herramientas">
+    <button id="menu-cerrar" class="chico cerrar-menu">Cerrar menú ✕</button>
+    <section>
+      <label class="campo-buscar">
+        <span class="sr">Buscar estructura</span>
+        <input id="buscar" type="search" placeholder="Buscar músculo, hueso u órgano…" autocomplete="off" enterkeyhint="search">
+      </label>
+      <ul id="resultados" role="listbox"></ul>
+    </section>
+
+    <section>
+      <h2>Capas</h2>
+      <div id="capas"></div>
+    </section>
+
+    <section>
+      <h2>Vistas</h2>
+      <div class="fila">
+        <button data-vista="anterior">Anterior</button>
+        <button data-vista="posterior">Posterior</button>
+        <button data-vista="izquierda">Lateral izq.</button>
+        <button data-vista="derecha">Lateral der.</button>
+      </div>
+    </section>
+
+    <section>
+      <h2>Plano de corte horizontal</h2>
+      <label class="check"><input type="checkbox" id="corte-on"> Activar corte</label>
+      <input type="range" id="corte" min="0" max="100" value="100" aria-label="Altura del plano de corte">
+      <small id="corte-info">Oculta lo que está por encima del plano.</small>
+    </section>
+
+    <section>
+      <h2>Rendimiento</h2>
+      <label class="campo">Calidad
+        <select id="calidad"><option value="auto">Automática</option><option value="alta">Alta</option><option value="baja">Baja (ahorra batería)</option></select>
+      </label>
+      <label class="check"><input type="checkbox" id="efectos"> Efectos (oclusión ambiental y brillo)</label>
+      <small id="rend-info"></small>
+    </section>
+
+    <section class="creditos">
+      <h2>Fuentes</h2>
+      <small>Modelos: <a href="https://github.com/Z-Anatomy/Models-of-human-anatomy" target="_blank" rel="noopener">Z-Anatomy</a> (CC BY-SA 4.0), derivados de BodyParts3D (© DBCLS, CC BY-SA 2.1 Japón). Esta versión es una adaptación (fusión por capas, reducción de polígonos y compresión). Ver <a href="https://github.com/roberal82/visor-anatomico-3d/blob/main/FUENTES-Y-LICENCIAS.md" target="_blank" rel="noopener">fuentes y licencias</a>.</small>
+    </section>
+  </aside>
+  <div id="velo" hidden></div>
+
+  <section id="info" hidden aria-live="polite">
+    <button id="info-cerrar" class="icono chico-x" aria-label="Cerrar">×</button>
+    <div id="info-cuerpo"></div>
+  </section>
+
+  <section id="lesion-panel" hidden>
+    <h2>LESIÓN GÁSTRICA — VISUALIZACIÓN ILUSTRATIVA</h2>
+    <dl id="lesion-datos"></dl>
+    <div id="lesion-mas" hidden>
+      <p id="lesion-aviso"></p>
+      <p id="lesion-estado"></p>
+    </div>
+    <div class="fila">
+      <button id="btn-detalles" class="chico" aria-expanded="false">Ver aclaraciones ▾</button>
+      <button id="btn-volver" class="chico">Volver a la vista general</button>
+    </div>
+  </section>
+  <div id="lesion-etiqueta" hidden>Lesión (ilustrativa)</div>
+
+  <button id="btn-lesion" class="accion">IR A LA LESIÓN</button>
+
+  <div id="error" hidden role="alert"></div>
+  <footer id="aviso">Esquema ilustrativo, no reemplaza las imágenes ni el criterio del equipo médico.</footer>
+</div>
+<noscript><p style="color:#fff;padding:1rem">Este visor necesita JavaScript.</p></noscript>
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>

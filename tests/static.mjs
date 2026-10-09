@@ -6,10 +6,10 @@ const CAPAS = ['piel', 'musculos', 'esqueleto', 'organos', 'vasos'];
 let fallos = 0;
 const ok = (c, m) => { console.log(`${c ? 'OK   ' : 'FALLA'} ${m}`); if (!c) fallos++; };
 
-const indice = JSON.parse(fs.readFileSync(path.join(raiz, 'public/modelos/indice.json'), 'utf8'));
+const indice = JSON.parse(fs.readFileSync(path.join(raiz, 'modelos/indice.json'), 'utf8'));
 for (const tier of ['alta', 'baja']) {
   for (const capa of CAPAS) {
-    const f = path.join(raiz, `public/modelos/${tier}/${capa}.glb`);
+    const f = path.join(raiz, `modelos/${tier}/${capa}.glb`);
     if (!fs.existsSync(f)) { ok(false, `existe ${tier}/${capa}.glb`); continue; }
     const b = fs.readFileSync(f);
     const magia = b.toString('ascii', 0, 4) === 'glTF';
@@ -24,12 +24,12 @@ for (const tier of ['alta', 'baja']) {
     ok(esperadas > 0 && b.length < 3e6, `${tier}/${capa}.glb: tamaño razonable para móvil`);
   }
 }
-for (const f of ['public/draco/draco_decoder.wasm', 'public/draco/draco_wasm_wrapper.js', 'public/modelos/LICENCIA-Z-Anatomy.txt', 'FUENTES-Y-LICENCIAS.md', 'src/config/lesion.js']) {
+for (const f of ['draco/draco_decoder.wasm', 'draco/draco_wasm_wrapper.js', 'modelos/LICENCIA-Z-Anatomy.txt', 'FUENTES-Y-LICENCIAS.md', 'fuente/src/config/lesion.js']) {
   ok(fs.existsSync(path.join(raiz, f)), `existe ${f}`);
 }
-const lesion = fs.readFileSync(path.join(raiz, 'src/config/lesion.js'), 'utf8');
+const lesion = fs.readFileSync(path.join(raiz, 'fuente/src/config/lesion.js'), 'utf8');
 ok(/calibrada:\s*(true|false)/.test(lesion), 'lesion.js declara el estado de calibración');
-const html = fs.readFileSync(path.join(raiz, 'index.html'), 'utf8');
+const html = fs.readFileSync(path.join(raiz, 'fuente/index.html'), 'utf8');
 ok(html.includes('Esquema ilustrativo, no reemplaza las imágenes ni el criterio del equipo médico.'), 'aviso médico presente en index.html');
 const vite = fs.readFileSync(path.join(raiz, 'vite.config.js'), 'utf8');
 ok(vite.includes("base: '/visor-anatomico-3d/'"), 'Vite base = /visor-anatomico-3d/');
