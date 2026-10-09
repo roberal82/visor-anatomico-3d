@@ -7,8 +7,8 @@
 <link rel="icon" href="data:,">
 <title>Visor anatómico 3D</title>
 <meta name="description" content="Visor anatómico 3D interactivo del cuerpo humano con cinco capas: piel, músculos, esqueleto, órganos y sistema circulatorio.">
-  <script type="module" crossorigin src="/visor-anatomico-3d/assets/index-CrHx6t6y.js"></script>
-  <link rel="stylesheet" crossorigin href="/visor-anatomico-3d/assets/index-CI8L7Kd4.css">
+  <script type="module" crossorigin src="/visor-anatomico-3d/assets/index-BB44Wk5B.js"></script>
+  <link rel="stylesheet" crossorigin href="/visor-anatomico-3d/assets/index-BL9jk2yI.css">
 </head>
 <body>
 <div id="app">
@@ -17,6 +17,7 @@
   <header id="barra">
     <button id="btn-menu" class="icono" aria-label="Abrir menú" aria-expanded="false">☰</button>
     <h1>Visor anatómico 3D</h1>
+    <button id="btn-estudios" class="chico">Estudios</button>
     <button id="btn-reiniciar" class="chico" title="Restablecer la cámara">Restablecer</button>
   </header>
 
@@ -35,6 +36,13 @@
     <section>
       <h2>Capas</h2>
       <div id="capas"></div>
+    </section>
+
+    <section>
+      <h2>Estudios</h2>
+      <label class="check"><input type="checkbox" id="asc-on"> Ubicación de la ascitis leve</label>
+      <small>Zonas orientativas según los informes; no muestran volumen.</small>
+      <button id="btn-estudios2" class="chico" style="margin-top:8px;width:100%">Ver resultados de los estudios</button>
     </section>
 
     <section>
@@ -86,6 +94,14 @@
       <button id="btn-detalles" class="chico" aria-expanded="false">Ver aclaraciones ▾</button>
       <button id="btn-volver" class="chico">Volver a la vista general</button>
     </div>
+  </section>
+  <section id="estudios-panel" hidden>
+    <button id="estudios-cerrar" class="icono chico-x" aria-label="Cerrar">×</button>
+    <h2>RESULTADOS DE LOS ESTUDIOS</h2>
+    <p class="nota">Transcripción de lo que consta en los informes. No es un diagnóstico ni una estadificación: eso lo define el equipo médico.</p>
+    <div id="estudios-lista"></div>
+    <label class="check"><input type="checkbox" id="asc-on2"> Mostrar ubicación de la ascitis en el modelo</label>
+    <p class="nota" id="asc-nota"></p>
   </section>
   <div id="lesion-etiqueta" hidden>Lesión (ilustrativa)</div>
 

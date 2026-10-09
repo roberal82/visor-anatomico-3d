@@ -19,8 +19,8 @@ export const LESION = {
     localizacion: 'Curvatura mayor, pared posterior',
     endoscopia: 'Tumoración difusa, friable y estenosante',
   },
-  aviso: 'Representación aproximada e ilustrativa. No se conocen —y por eso no se muestran— histopatología, estadio, ' +
-         'metástasis, dimensiones, profundidad de invasión ni extensión exacta.',
+  aviso: 'Representación aproximada e ilustrativa de la ubicación. No se conocen —y por eso no se muestran— estadio definitivo, ' +
+         'metástasis confirmadas, dimensiones, profundidad de invasión ni extensión exacta.',
 
   // Marcador: punto sobre la superficie posterior del estómago (cuerpo, cerca de la curvatura mayor, lado izquierdo del paciente).
   marcador: {

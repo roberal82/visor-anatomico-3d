@@ -11,6 +11,7 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { computeBoundsTree, disposeBoundsTree, acceleratedRaycast } from 'three-mesh-bvh';
 import { LESION } from './config/lesion.js';
+import { ESTUDIOS, BIOPSIA_RESUMEN, ASCITIS_NOTA } from './config/estudios.js';
 
 THREE.BufferGeometry.prototype.computeBoundsTree = computeBoundsTree;
 THREE.BufferGeometry.prototype.disposeBoundsTree = disposeBoundsTree;
@@ -517,7 +518,7 @@ async function irALaLesion() {
   if (mostrar) construirMarcador().visible = true;
   // panel
   const D = L.descripcion;
-  $('#lesion-datos').innerHTML = `<dt>Órgano</dt><dd>${D.organo}</dd><dt>Región</dt><dd>${D.region}</dd><dt>Localización</dt><dd>${D.localizacion}</dd><dt>Endoscopia</dt><dd>${D.endoscopia}</dd>`;
+  $('#lesion-datos').innerHTML = `<dt>Órgano</dt><dd>${D.organo}</dd><dt>Región</dt><dd>${D.region}</dd><dt>Localización</dt><dd>${D.localizacion}</dd><dt>Endoscopia</dt><dd>${D.endoscopia}</dd><dt>Biopsia</dt><dd>${BIOPSIA_RESUMEN}</dd>`;
   $('#lesion-aviso').textContent = L.aviso;
   $('#lesion-estado').textContent = mostrar
     ? 'Marcador rojo: ubicación calibrada y comprobada sobre la malla del estómago de este modelo (lado izquierdo del paciente, pared posterior). Tamaño del marcador solo visual. Zona anaranjada: región descrita, orientativa.'
@@ -686,3 +687,68 @@ window.__visor = {
   },
 };
 iniciar();
+
+/* ---------- resultados de estudios y ubicación de la ascitis ---------- */
+function construirEstudios() {
+  const cont = $('#estudios-lista');
+  for (const e of ESTUDIOS) {
+    const d = document.createElement('div'); d.className = 'est';
+    const h = document.createElement('h3'); h.textContent = e.titulo;
+    const f = document.createElement('small'); f.textContent = e.fecha; h.append(f);
+    const ul = document.createElement('ul');
+    for (const [tipo, txt] of e.items) {
+      const li = document.createElement('li');
+      const t = document.createElement('span'); t.className = `tag ${tipo}`; t.textContent = tipo;
+      const x = document.createElement('span'); x.textContent = txt;
+      li.append(t, x); ul.append(li);
+    }
+    d.append(h, ul); cont.append(d);
+  }
+  $('#asc-nota').textContent = ASCITIS_NOTA;
+}
+construirEstudios();
+const abrirEstudios = () => { cerrarMenu(); $('#estudios-panel').hidden = false; };
+$('#btn-estudios').addEventListener('click', () => ($('#estudios-panel').hidden ? abrirEstudios() : ($('#estudios-panel').hidden = true)));
+$('#btn-estudios2').addEventListener('click', abrirEstudios);
+$('#estudios-cerrar').addEventListener('click', () => { $('#estudios-panel').hidden = true; });
+
+let ascitis = null;
+function cajaEstructura(nombreEn) {
+  const c = capas.organos; if (!c) return null;
+  const e = c.nombres.find((n) => n.en === nombreEn); if (!e) return null;
+  const i = e.id * 3;
+  return { mn: [c.mn[i], c.mn[i + 1], c.mn[i + 2]], mx: [c.mx[i], c.mx[i + 1], c.mx[i + 2]] };
+}
+function construirAscitis() {
+  if (ascitis) return ascitis;
+  const hig = cajaEstructura('Liver'), vej = cajaEstructura('Urinary bladder'), asc = cajaEstructura('Ascending colon'), des = cajaEstructura('Descending colon');
+  if (!hig || !vej || !asc || !des) return null;
+  const g = new THREE.Group();
+  const mat = new THREE.MeshBasicMaterial({ color: '#4fc3ff', transparent: true, opacity: 0.42, depthWrite: false, toneMapped: false });
+  const zona = (nombre, pos, radios) => {
+    const m = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 14), mat);
+    m.position.set(...pos); m.scale.set(...radios); m.name = nombre; m.renderOrder = 40; m.raycast = () => {}; g.add(m);
+  };
+  const cen = (b, k) => (b.mn[k] + b.mx[k]) / 2;
+  // zonas orientativas, derivadas de la propia geometría: debajo del hígado, sobre la vejiga y por fuera del colon ascendente/descendente
+  zona('Subhepática', [cen(hig, 0), hig.mn[1] - 0.012, cen(hig, 2)], [0.045, 0.014, 0.035]);
+  zona('Pelvis', [cen(vej, 0), vej.mx[1] + 0.012, cen(vej, 2)], [0.05, 0.016, 0.04]);
+  zona('Flanco derecho', [asc.mn[0] - 0.012, cen(asc, 1), cen(asc, 2)], [0.012, 0.055, 0.03]);
+  zona('Flanco izquierdo', [des.mx[0] + 0.012, cen(des, 1), cen(des, 2)], [0.012, 0.055, 0.03]);
+  scene.add(g); ascitis = g; return g;
+}
+function mostrarAscitis(v) {
+  $('#asc-on').checked = v; $('#asc-on2').checked = v;
+  const g = construirAscitis();
+  if (g) g.visible = v; else if (v) { $('#asc-nota').textContent = 'Todavía se están cargando los órganos; probá de nuevo en unos segundos.'; $('#asc-on').checked = $('#asc-on2').checked = false; }
+  if (v && g) {
+    const d = POR_ID.organos; d.visible = true; d.opac = Math.min(d.opac, 0.35); aplicarOpacidad('organos');
+    const p = POR_ID.piel; if (p.opac > 0.3) { p.opac = 0.2; aplicarOpacidad('piel'); }
+    const m = POR_ID.musculos; if (m.visible) { m.visible = false; aplicarOpacidad('musculos'); }
+    sincronizarUI();
+    volarA(new THREE.Vector3(0, 1.0, 0), new THREE.Vector3(0, 1.05, 1.1), 900);
+  }
+}
+$('#asc-on').addEventListener('change', (e) => mostrarAscitis(e.target.checked));
+$('#asc-on2').addEventListener('change', (e) => mostrarAscitis(e.target.checked));
+Object.assign(window.__visor, { ascitisVisible: () => !!(ascitis && ascitis.visible), zonasAscitis: () => ascitis ? ascitis.children.map((m) => ({ n: m.name, p: m.position.toArray().map((x) => +x.toFixed(3)) })) : [] });
